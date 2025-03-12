@@ -1,0 +1,23 @@
+Verifying environment and performing prerequisite checks...
+Prerequisite check "CheckActiveFilesAndExecutables" failed.
+The details are:
+
+
+Following active files/executables/libs are used by ORACLE_HOME :/u01/app/oracle/product/19.0.0/dbhome_1
+
+/u01/app/oracle/product/19.0.0/dbhome_1/lib/libclntsh.so.19.1
+/u01/app/oracle/product/19.0.0/dbhome_1/lib/libsqlplus.so
+/u01/app/oracle/product/19.0.0/dbhome_1/bin/oracle
+
+
+UtilSession failed: Prerequisite check "CheckActiveFilesAndExecutables" failed.
+Log file location: /u01/app/oracle/product/19.0.0/dbhome_1/cfgtoollogs/opatch/opatch2025-02-14_16-48-20PM_1.log
+
+OPatch failed with error code 73
+
+//	-------	Solution :
+
+ps -ef | grep ora_
+lsof | grep "/u01/app/oracle/product/19.0.0/dbhome_1"
+pkill sqlplus
+ps -ef | grep sqlplus

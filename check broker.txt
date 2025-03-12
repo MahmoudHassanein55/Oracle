@@ -1,0 +1,130 @@
+[oracle@dr-ocpdbdr-v01 trace]$ srvctl stop database -d ECMCNDR
+[oracle@dr-ocpdbdr-v01 trace]$ srvctl start database -d ECMCNDR -o mount
+
+DGMGRL> show instance verbose 'egabiprd1'
+
+Instance 'egabiprd1' of database 'egabiprd'
+
+  PFILE:
+  Properties:
+    HostName                        = 'hq-ocpdbhq-v01'
+    StaticConnectIdentifier         = '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.51.128.16)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=egabiprd_DGMGRL)(INSTANCE_NAME=egabiprd1)(SERVER=DEDICATED)))'
+    TopWaitEvents                   = '(monitor)'
+    SidName                         = '(monitor)'
+
+  Log file locations:
+    Alert log               : /u01/app/oracle/diag/rdbms/egabiprd/egabiprd1/trace/alert_egabiprd1.log
+    Data Guard Broker log   : /u01/app/oracle/diag/rdbms/egabiprd/egabiprd1/trace/drcegabiprd1.log
+
+Instance Status:
+SUCCESS
+
+validate database ECMCNDR
+
+DGMGRL> disable configuration
+Disabled.
+DGMGRL> enable configuration
+Enabled.
+
+
+ECMCNDR =
+  (DESCRIPTION =
+  (LOAD_BALANCE=on)
+  (FAILOVER=on)
+    (ADDRESS = (PROTOCOL = TCP)(HOST = dr-ocpdbdr-v01-vip)(PORT = 1521))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = dr-ocpdbdr-v02-vip)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = ECMCNDR)
+    )
+  )
+  
+  -------
+  
+  opyright (c) 1982, 2019, Oracle and/or its affiliates.  All rights reserved.
+
+Welcome to DGMGRL, type "help" for information.
+Connected to "ECMCNDR"
+Connected as SYSDBA.
+DGMGRL> show configuration
+
+Configuration - DGBROK
+
+  Protection Mode: MaxPerformance
+  Members:
+  egabiprd  - Primary database
+    ecmcndr - Physical standby database
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 6 seconds ago)
+
+DGMGRL> show database ecmcndr
+
+Database - ecmcndr
+
+  Role:               PHYSICAL STANDBY
+  Intended State:     APPLY-ON
+  Transport Lag:      0 seconds (computed 1 second ago)
+  Apply Lag:          0 seconds (computed 1 second ago)
+  Average Apply Rate: 12.00 KByte/s
+  Real Time Query:    OFF
+  Instance(s):
+    ECMCNDR1
+    ECMCNDR2
+
+Database Status:
+SUCCESS
+
+DGMGRL> show database egabiprd
+
+Database - egabiprd
+
+  Role:               PRIMARY
+  Intended State:     TRANSPORT-ON
+  Instance(s):
+    egabiprd1
+    egabiprd2
+
+Database Status:
+SUCCESS
+
+
+DGMGRL> validate database egabiprd
+
+  Database Role:    Primary database
+
+  Ready for Switchover:  Yes
+
+  Flashback Database Status:
+    egabiprd:  Off
+
+  Managed by Clusterware:
+    egabiprd:  YES
+
+DGMGRL>
+
+
+
+--> Check Gap
+------------
+set lines 200
+select name,value,unit from v$dataguard_stats
+
+
+--> Check MRP Status 
+------------
+set pages 500
+select INST_ID,PROCESS,STATUS,THREAD#,SEQUENCE# from gv$managed_standby;
+
+
+--> check SEQUENCE done apply
+-------------------------
+SELECT SEQUENCE#, APPLIED FROM V$ARCHIVED_LOG ORDER BY SEQUENCE# DESC
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+alter system switch logfile;

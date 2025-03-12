@@ -1,0 +1,138 @@
+
+IN active Patches: (If need to delete inactive) not Recommended to delete every patch
+==================
+
+$ORACLE_HOME/OPatch/opatch util listorderedinactivepatches
+$ORACLE_HOME/OPatch/opatch util deleteinactivepatches -silent
+
+====================================================================================
+DBA_REGISTRY_SQLPATCH view:
+----------------------------
+
+SQL> desc dba_registry_sqlpatch;
+SQL> select PATCH_ID, PATCH_TYPE, ACTION_TIME, DESCRIPTION, STATUS from dba_registry_sqlpatch;
+
+#Patch Auditing: To verify which patches are installed on the database.
+#Troubleshooting: To confirm if a specific patch has been applied or rolled back.
+#Upgrade Validation: To ensure database components are up to date.
+====================================================================================
+Check the invalid objects and components on CDB and PDB
+-----------------------------------------
+
+ col version for a11
+ col status for a10
+ col comp_name for a37
+ select comp_id,comp_name,version,status from dba_registry;
+ 
+ select count(*) from all_objects where status='INVALID' group by owner;
+ 
+====================================================================================
+Run the UTLRPT.SQL Package to compile the INVALID Object if needed
+-------------------------------------------------------------------
+ 
+ sqlplus / as sysdba
+
+CDB  & Pdbs
+
+
+ @?/rdbms/admin/utlrp.sql;
+ 
+====================================================================================
+check again the invalid objects and components
+-----------------------------------------------
+
+ sqlplus / as sysdba
+ 
+ COLUMN action_time FORMAT A10
+ COLUMN status FORMAT A30
+ COLUMN description FORMAT A30
+ SELECT action_time,action,status,description,patch_id from dba_registry_sqlpatch;
+====================================================================================
+Version:
+========
+
+$ORACLE_HOME/OPatch/opatch lspatches
+$ORACLE_HOME/OPatch/opatch version
+
+====================================================================================
+Opatch verion:
+--------------
+
+mv Opatch    ===> from $ORACLE_HOME
+unzip   OPatch on $ORACLE_HOME (if OPatch need it to upgrade)
+
+
+====================================================================================
+Check if for any conflict before applying patch:
+------------------------------------------------------
+Database Patch:
+-----------------------
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir /u01/sources/37262172/37260974 -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir /u01/sources/37262172/37260974 -oh $ORACLE_HOME
+
+
+====================================================================================
+OJVM Patch:
+--------------------
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir /u01/sources/37262172/37102264 -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir /u01/sources/37262172/37102264 -oh $ORACLE_HOME
+
+====================================================================================
+after apply shut database, lsnr, agent:
+---------------------------------------
+SQL> shut immediate
+
+lsnrctl stop
+
+ps -ef | grep agent
+
+<path of agent> /emctl stop
+
+====================================================================================
+Apply Patchs(Database & OJVM):
+------------------------------------
+
+export PATH=$ORACLE_HOME/perl/bin:$PATH
+export PERL5LIB=$ORACLE_HOME/perl/lib
+
+
+$ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent /u01/sources/37262172/37260974
+$ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent /u01/sources/37262172/37102264
+
+====================================================================================
+
+SQL> startup
+
+lsnrctl start
+
+<path of agent>/emctl start
+
+
+====================================================================================
+Data Patch:	on primary "maybe ask before you do it"
+-------------
+
+cd $ORACLE_HOME/OPatch/
+./datapatch -verbose
+
+//	It helps to ensure the integrity and consistency of the database schema after applying patches or upgrades //
+
+
+
+// before
+
+// invalid objects CDB
+
+
+  COUNT(*)
+----------
+         2
+         1
+
+
+// invalid objects PDB
+
+
+
+
+

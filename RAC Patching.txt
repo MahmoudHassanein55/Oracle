@@ -1,0 +1,243 @@
+latest patch from oracle Follow this note from ORACLE SUPPORT:
+================================================================
+Doc ID 2118136.2
+
+
+IN active Patches:
+==================
+
+$ORACLE_HOME/OPatch/opatch util listorderedinactivepatches
+$ORACLE_HOME/OPatch/opatch util deleteinactivepatches -silent
+
+------------------------------------------------------------------------------------------------------
+Check the invalid objects and components on CDB and PDB  ( before and after )
+-----------------------------------------
+
+ col version for a11
+ col status for a10
+ col comp_name for a37
+ select comp_id,comp_name,version,status from dba_registry;
+ 
+ select count(*) from all_objects where status='INVALID' group by owner;
+ 
+====================================================================================
+Run the UTLRPT.SQL Package to compile the INVALID Object if needed ( if the invalid is more)
+-------------------------------------------------------------------
+
+ @?/rdbms/admin/utlrp.sql;
+ ====================================================================================
+Version:
+========
+
+$ORACLE_HOME/OPatch/opatch lspatches
+$ORACLE_HOME/OPatch/opatch version
+
+unzip   OPatch on  grid home <== as root  & oracle home <== as oracle (if OPatch need it) 
+chown -R   grid:oinstall /u01/app/19.0.0.0/grid/OPatch (as root)
+
+
+------------------------------------------------------------------------------------------------------
+as root
+=======
+
+cd /u01
+mkdir  patches
+chmod -R 775 patches
+upload sources with oracle or grid user not root
+chmod -R 775 /u01/patches/37262208 (patch id) ==> after unzip
+ 
+
+
+export GRID_HOME=/u01/app/19.0.0.0/grid  
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0.0/dbhome_1
+export PATCH_LOCATION=/u01/patches/37262208
+
+export BP_NUMBER=37257886
+export OCW_PATCH=37268031
+export ACFS_PATCH=37266638
+export WLM_PATCH=36758186
+export DB_PATCH=37260974
+export TOMCAT_PATCH=37461387
+export OJVM_PATCH=37102264
+
+
+------------------------------------------------------------------------------------------------------
+as GRID 
+========
+. oraenv 
+
+export GRID_HOME=/u01/app/19.0.0.0/grid
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0.0/dbhome_1
+export PATCH_LOCATION=/u01/patches/37262208
+
+export BP_NUMBER=37257886
+export OCW_PATCH=37268031
+export ACFS_PATCH=37266638
+
+export WLM_PATCH=36758186
+export DB_PATCH=37260974
+export TOMCAT_PATCH=37461387
+export OJVM_PATCH=37102264
+
+$GRID_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH        -oh $GRID_HOME
+$GRID_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH      -oh  $GRID_HOME
+$GRID_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$TOMCAT_PATCH   -oh  $GRID_HOME
+$GRID_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$ACFS_PATCH    -oh   $GRID_HOME
+$GRID_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$WLM_PATCH     -oh   $GRID_HOME
+
+
+
+$GRID_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH    -oh      $GRID_HOME
+$GRID_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$TOMCAT_PATCH     -oh $GRID_HOME
+$GRID_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH     -oh    $GRID_HOME
+$GRID_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$ACFS_PATCH    -oh    $GRID_HOME
+$GRID_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$WLM_PATCH    -oh     $GRID_HOME
+
+------------------------------------------------------------------------------------------------------
+as ORACLE
+==========
+
+export GRID_HOME=/u01/app/19.0.0.0/grid
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0/dbhome_1  
+export PATCH_LOCATION=/u01/patches/37262208
+
+export BP_NUMBER=37257886
+export OCW_PATCH=37268031
+export ACFS_PATCH=37266638
+export WLM_PATCH=36758186
+export DB_PATCH=37260974
+export TOMCAT_PATCH=37461387
+export OJVM_PATCH=37102264
+
+
+
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH  -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir /u01/patches/37262208/37102264 -oh $ORACLE_HOME
+
+
+
+$ORACLE_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH  -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir /u01/patches/37262208/37102264 -oh $ORACLE_HOME
+
+
+------------------------------------------------------------------------------------------------------
+apply patching plan :
+=====================
+as root :
+
+chmod  755 $GRID_HOME/QOpatch/qopiprep.bat
+chmod  755 $ORACLE_HOME/QOpatch/qopiprep.bat
+
+$GRID_HOME/crs/install/rootcrs.sh -prepatch -nonrolling
+------------------------------------------------------------------------------------------------------
+su - grid
+===========
+
+export GRID_HOME=/u01/app/19.0.0.0/grid
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0/dbhome_1
+export PATCH_LOCATION=/u01/patches/37262208
+
+export BP_NUMBER=37257886
+export OCW_PATCH=37268031
+export ACFS_PATCH=37266638
+export WLM_PATCH=36758186
+export DB_PATCH=37260974
+export TOMCAT_PATCH=37461387
+export OJVM_PATCH=37102264
+
+$GRID_HOME/OPatch/opatch apply -oh $GRID_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH    
+$GRID_HOME/OPatch/opatch apply -oh $GRID_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH   
+$GRID_HOME/OPatch/opatch apply -oh $GRID_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$TOMCAT_PATCH
+$GRID_HOME/OPatch/opatch apply -oh $GRID_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$ACFS_PATCH  
+$GRID_HOME/OPatch/opatch apply -oh $GRID_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$WLM_PATCH   
+
+
+
+$GRID_HOME/OPatch/opatch lspatches -oh $GRID_HOME
+------------------------------------------------------------------------------------------------------
+su - oracle
+============
+
+export GRID_HOME=/u01/app/19.0.0.0/grid
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0/dbhome_1
+export PATCH_LOCATION=/u01/patches/37262208
+
+export BP_NUMBER=37257886
+export OCW_PATCH=37268031
+export ACFS_PATCH=37266638
+export WLM_PATCH=36758186
+export DB_PATCH=37260974
+export TOMCAT_PATCH=37461387
+export OJVM_PATCH=37102264
+
+$PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH/custom/scripts/prepatch.sh -dbhome $ORACLE_HOME
+
+$ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH
+$ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH
+
+###to avoid any erorr when applying OJVM patch:
+------------------------------------------------------------------------------------------------------
+export PATH=$ORACLE_HOME/perl/bin:$PATH
+export PERL5LIB=$ORACLE_HOME/perl/lib
+------------------------------------------on oracle user------------------------------------------------------------
+$ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent /u01/patches/37262208/37102264
+------------------------------------------------------------------------------------------------------
+$PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH/custom/scripts/postpatch.sh -dbhome $ORACLE_HOME 
+
+$ORACLE_HOME/OPatch/opatch lspatches -oh $ORACLE_HOME
+
+
+------------------------------------------------------------------------------------------------------
+Postchecks
+===========
+
+as root
+
+/u01/app/19.0.0.0/grid/rdbms/install/rootadd_rdbms.sh
+/u01/app/19.0.0.0/grid/crs/install/rootcrs.sh -postpatch -nonrolling   
+
+
+------------------------------------------------------------------------------------------------------
+whenpatch is done should be status is NORMAL:
+===============================================
+
+2024/11/20 17:35:30 CLSRSC-329: Replacing Clusterware entries in file 'oracle-ohasd.service'
+Oracle Clusterware active version on the cluster is [19.0.0.0.0]. The cluster upgrade state is [NORMAL]. The cluster active patch level is [760403972].
+2024/11/20 17:39:18 CLSRSC-4015: Performing install or upgrade action for Oracle Trace File Analyzer (TFA) Collector.
+2024/11/20 17:39:48 CLSRSC-672: Post-patch steps for patching GI home successfully completed.
+
+------------------------------------------------------------------------------------------------------
+Datapatch on primary ONLY:
+===========================
+su - oracle
+
+
+desc dba_registry_sqlpatch;
+select PATCH_ID, PATCH_TYPE, ACTION_TIME, DESCRIPTION, STATUS from dba_registry_sqlpatch;
+
+cd $ORACLE_HOME/OPatch/
+./datapatch -verbose
+
+
+======================================
+Single _instance
+=================
+
+https://oracledbwr.com/step-by-step-applying-psu-patch-in-oracle-12c-for-single-instance/
+
+================================
+notes to permesion 
+==================
+
+go to the path /u01/app/oraInventory/ContentsXML/ and make sure that -rwxrwxr-x 1 grid oinstall 174 Aug 22 18:02 oui-patch.xml
+
+
+-----------------------------------------------------------------------------------------------------
+
+
+ desc dba_registry_sqlpatch;
+
+select PATCH_ID, PATCH_TYPE, ACTION_TIME, DESCRIPTION, STATUS from dba_registry_sqlpatch;
+

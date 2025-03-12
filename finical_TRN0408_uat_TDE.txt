@@ -1,0 +1,62 @@
+select WRL_PARAMETER, WRL_TYPE,WALLET_TYPE, status from V$ENCRYPTION_WALLET; 
+!mkdir -p /u01/app/oracle/admin/FWRYUATDB/wallet
+
+
+------on CDB level  
+ADMINISTER KEY MANAGEMENT CREATE KEYSTORE '/u01/app/oracle/admin/FWRYUATDB/wallet' identified by Ora2022_2022;
+ADMINISTER KEY MANAGEMENT SET KEYSTORE OPEN IDENTIFIED BY Ora2022_2022;
+ADMINISTER KEY MANAGEMENT SET KEY IDENTIFIED BY Ora2022_2022 with backup;
+
+
+===========on PDB===================
+ADMINISTER KEY MANAGEMENT SET KEYSTORE open IDENTIFIED BY  "Ora2022_2022";
+ADMINISTER KEY MANAGEMENT SET KEY FORCE KEYSTORE IDENTIFIED BY "Ora2022_2022" WITH BACKUP;
+
+
+
+
+------on CDB level  
+ADMINISTER KEY MANAGEMENT CREATE AUTO_LOGIN KEYSTORE FROM KEYSTORE '/u01/app/oracle/admin/FWRYUATDB/wallet' IDENTIFIED BY Ora2022_2022;
+ADMINISTER KEY MANAGEMENT SET KEYSTORE CLOSE IDENTIFIED BY Ora2022_2022;
+
+SQL> !ls -ltr /u01/app/oracle/admin/FWRYUATDB/wallet
+total 12
+-rw------- 1 oracle dba 2555 Nov 28 12:39 ewallet_2024112809392589.p12
+-rw------- 1 oracle dba 3995 Nov 28 12:39 ewallet.p12
+-rw------- 1 oracle dba 4040 Nov 28 12:39 cwallet.sso
+
+
+
+
+select WRL_PARAMETER, WRL_TYPE,WALLET_TYPE, status from V$ENCRYPTION_WALLET;
+total 24
+-rw------- 1 oracle asmadmin 2553 Jan 29 14:10 ewallet_2025012912105566.p12
+-rw------- 1 oracle asmadmin 3993 Jan 29 14:12 ewallet_2025012912121238.p12
+-rw------- 1 oracle asmadmin 5465 Jan 29 14:12 ewallet.p12
+-rw------- 1 oracle asmadmin 5510 Jan 29 14:12 cwallet.sso
+
+
+============================
+SELECT t.name "TSName", e.encryptionalg "Algorithm" FROM v$tablespace t, v$encrypted_tablespaces e WHERE t.ts# = e.ts#;
+
+no rows selected
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLESPACE CUST_TBLSP         ENCRYPTION ONLINE USING 'AES256' ENCRYPT ;
+ALTER TABLESPACE EBPP_AUDIT         ENCRYPTION ONLINE USING 'AES256' ENCRYPT ; 
+ALTER TABLESPACE EBPP_CONFIGURATION ENCRYPTION ONLINE USING 'AES256' ENCRYPT ; 
+ALTER TABLESPACE EBPP_CORE	        ENCRYPTION ONLINE USING 'AES256' ENCRYPT ; 
+ALTER TABLESPACE OPC	            ENCRYPTION ONLINE USING 'AES256' ENCRYPT ;    
+
+ALTER TABLESPACE EBPP_CONFIGURATION ENCRYPTION ONLINE DECRYPT ;

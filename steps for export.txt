@@ -1,0 +1,69 @@
+------------------------------------------steps for export----------------------------------------
+
+1 - ============= Set Environment = CDB Name ==================
+ps -ef |grep pmon
+. oraenv	
+
+2 - ======== creating new folder =======
+
+mkdir -p 	 /u01/datapump/orcltest
+chmod -R 775 /u01/datapump/orcltest
+
+3 - ======== creating directory on SQL ===========
+sqlplus / as sysdba
+show pdbs
+
+alter session set container =MIGPDB2 ;
+show pdbs
+	
+show con_name;
+	MIGPDB2
+	
+	
+create or replace directory ORCLTST as '/u01/datapump/orcltest';
+grant read,write on directory ORCLTST to public;
+
+
+4 - ==== Creating Par file "parameters"  =======
+
+DUMPFILE=orcltest040824_%U.DMP
+LOGFILE=orcltest040824.LOGFILE
+DIRECTORY=bulk040824
+EXCLUDE=db_link,statistics
+PARALLEL=10
+#COMPRESSION=all
+schemas=orcltest
+
+ ---- path of par file---
+ 
+cd /u01/datapump/orcltest040824
+ 
+vi  EXPDP_orcl_04082024.par	 
+
+cat EXPDP_orcl_04082024.par
+
+5- =========== export command =========================
+
+cd /u01/datapump/orcltest040824
+
+expdp system/Ora2022@ORCLTST parfile=exp.par
+
+expdp system/Chennai#123@pdb1 directory=TEST_DIR SCHEMAS=hr dumpfile=hr1.dmp logfile=hr1.log encryption_password=hari ===> TDE
+
+RmanDatabase_2022 ===> pass TDE
+------------------------------------------
+sudo su - oracle
+cd /shared/FUBSCON_BKP/
+nohup ./AFTER_EOD_FUBSCON.sh &
+
+-------
+
+cd /shared/FUBSCON_BKP/
+tail -100f nohup.out
+
+
+------------
+scp -rp FUBSCON_BKP 10.31.160.12:/shared/datapump
+
+
+

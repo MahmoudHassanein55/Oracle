@@ -1,0 +1,106 @@
+
+
+1- for corrupted node 
+
+cd /u01/app/oracle/product/19.3.0.0/dbhome_1/oui/bin
+
+[oracle@dr-misdb-v02 bin]$ ./runInstaller -detachHome  -silent -local ORACLE_HOME=/u01/app/oracle/product/19.3.0.0/dbhome_1
+Starting Oracle Universal Installer...
+
+Checking swap space: must be greater than 500 MB.   Actual 16214 MB    Passed
+The inventory pointer is located at /etc/oraInst.loc
+You can find the log of this install session at:
+ /u01/app/oraInventory/logs/DetachHome2025-02-13_11-02-20AM.log
+'DetachHome' was successful.
+[oracle@dr-misdb-v02 bin]$
+
+
+2- take oracle home from another node 
+
+cd /u01/app/oracle/product/19.3.0.0
+
+tar -cvf dbhome_1.tar dbhome_1
+
+3- move tar file to another corrupted node 
+
+scp dbhome_1.tar oracle@dr-misdb-v02:/u01/app/oracle/product/19.3.0.0
+
+
+4- from corrupted node , mode old home name 
+
+cd /u01/app/oracle/product/19.3.0.0
+mv dbhome_1 dbhome_1_old
+
+5- unzip coppied oracle home 
+cd /u01/app/oracle/product/19.3.0.0
+tar -xvg dbhome_1.tar
+
+
+6- clone new oracle home 
+
+[oracle@dr-misdb-v02 dbhome_1]$ export ORACLE_HOME=/u01/app/oracle/product/19.3.0.0/dbhome_1
+[oracle@dr-misdb-v02 dbhome_1]$ $ORACLE_HOME/perl/bin/perl $ORACLE_HOME/clone/bin/clone.pl ORACLE_BASE="/u01/app/oracle" ORACLE_HOME="/u01/app/oracle/product/19.3.0.0/dbhome_1" OSDBA_GROUP=oinstall OSOPER_GROUP=oinstall OSBACKUPDBA_GROUP=oinstall OSDGDBA_GROUP=oinstall OSKMDBA_GROUP=oinstall OSRACDBA_GROUP=oinstall ORACLE_HOME_NAME=OraDB19Home1 CLUSTER_NODES="{dr-misdb-v01,dr-misdb-v02}"
+
+
+[INFO] [INS-32183] Use of clone.pl is deprecated in this release. Clone operation is equivalent to performing a Software Only installation from the image.
+You must use /u01/app/oracle/product/19.3.0.0/dbhome_1/runInstaller script available to perform the Software Only install. For more details on image based installation, refer to help documentation.
+
+Starting Oracle Universal Installer...
+
+You can find the log of this install session at:
+ /u01/app/oraInventory/logs/cloneActions2025-02-13_11-16-45AM.log
+..................................................   5% Done.
+..................................................   10% Done.
+..................................................   15% Done.
+..................................................   20% Done.
+..................................................   25% Done.
+..................................................   30% Done.
+..................................................   35% Done.
+..................................................   40% Done.
+..................................................   45% Done.
+..................................................   50% Done.
+..................................................   55% Done.
+..................................................   60% Done.
+..................................................   65% Done.
+..................................................   70% Done.
+..................................................   75% Done.
+..................................................   80% Done.
+..................................................   85% Done.
+..........
+Copy files in progress.
+
+Copy files successful.
+
+Link binaries in progress.
+..........
+Link binaries successful.
+
+Setup files in progress.
+..........
+Setup files successful.
+
+Setup Inventory in progress.
+
+Setup Inventory successful.
+..........
+Finish Setup successful.
+The cloning of OraDB19Home1 was successful.
+Please check '/u01/app/oraInventory/logs/cloneActions2025-02-13_11-16-45AM.log' for more details.
+
+Setup Oracle Base in progress.
+
+Setup Oracle Base successful.
+..................................................   95% Done.
+
+As a root user, execute the following script(s):
+        1. /u01/app/oracle/product/19.3.0.0/dbhome_1/root.sh
+
+Execute /u01/app/oracle/product/19.3.0.0/dbhome_1/root.sh on the following nodes:
+[dr-misdb-v02]
+
+
+..................................................   100% Done.
+[oracle@dr-misdb-v02 dbhome_1]$
+
+
+----------------------------------------------------------

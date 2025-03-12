@@ -1,0 +1,266 @@
+
+Set the WALLET_ROOT--------location---------on the both nodes for RAC on container level 
+===================
+mkdir -p /u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET
+
+ALTER SYSTEM SET WALLET_ROOT ='/u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET' SCOPE = SPFILE SID = '*';
+
+----------Set the WALLET_ROOT at sqlnet.ora file on both nodes ----------
+$ vi $ORACLE_HOME/network/admin/sqlnet.ora -------at $ORACLE_HOME
+NAMES.DIRECTORY_PATH= (TNSNAMES, EZCONNECT)
+ENCRYPTION_WALLET_LOCATION = (SOURCE =(METHOD = FILE)(METHOD_DATA = (DIRECTORY = /u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET)))
+
+
+Restart the DATABASE
+====================
+
+oracle@t24drdb1 : /home/oracle>srvctl status database -d salma
+Instance salma1 is running on node test-oracle-rack-v01
+Instance salma2 is running on node test-oracle-rack-v02
+
+
+oracle@t24drdb1 : /home/oracle>srvctl stop instance -d salma -i salma1
+
+
+oracle@t24drdb1 : /home/oracle>srvctl start instance -d salma -i salma1
+
+oracle@t24drdb1 : /home/oracle>srvctl stop instance -d salma -i salma2
+
+
+oracle@t24drdb1 : /home/oracle>srvctl start instance -d salma -i salma2
+
+
+SQL> show parameter wallet_root
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+wallet_root                          string      /u01/app/oracle/product/19.0.0
+                                                 /dbhome_1/admin/salma/WALLE
+                                                 T
+SQL>
+
+=============end of steps after rman in case restore =======================================================================
+
+Set the TDE_CONFIGURATION 
+=========================
+
+ALTER SYSTEM SET TDE_CONFIGURATION="KEYSTORE_CONFIGURATION=FILE" SCOPE = BOTH SID = '*';
+
+Create the Software Keystore
+============================
+------on CDB level  
+ADMINISTER KEY MANAGEMENT create KEYSTORE IDENTIFIED BY  "P#@ssWR0d_2022";
+ADMINISTER KEY MANAGEMENT SET KEY FORCE KEYSTORE IDENTIFIED BY "P#@ssWR0d_2022" WITH BACKUP;
+
+
+===========on PDB===================
+ADMINISTER KEY MANAGEMENT SET KEYSTORE open IDENTIFIED BY  "P#@ssWR0d_2022";
+ADMINISTER KEY MANAGEMENT SET KEY FORCE KEYSTORE IDENTIFIED BY "P#@ssWR0d_2022" WITH BACKUP;
+
+
+----------on CDB level------------
+Creating an Auto-Login
+=======================
+
+SQL> administer key management create auto_login keystore from keystore identified by "P#@ssWR0d_2022";
+
+keystore altered.
+
+ADMINISTER KEY MANAGEMENT set KEYSTORE close IDENTIFIED BY "P#@ssWR0d_2022";
+
+SQL>
+
+
+Check Keystore Files
+====================
+
+oracle@t24drdb1 : /u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET/tde>ls -ltr
+total 16
+-rw-------    1 oracle   asmadmin       2555 Jan 29 12:40 ewallet.p12
+-rw-------    1 oracle   asmadmin       2600 Jan 29 12:43 cwallet.sso
+oracle@t24drdb1 : /u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET/tde>
+
+
+Set TDE Master Key  >> Open Keystore
+=====================================
+
+----SQL> ADMINISTER KEY MANAGEMENT SET KEYSTORE OPEN FORCE KEYSTORE IDENTIFIED BY  "P#@ssWR0d_2022";
+
+keystore altered.
+
+--------SQL> SELECT STATUS FROM V$ENCRYPTION_WALLET;
+
+-------STATUS
+------------------------------
+-------OPEN_NO_MASTER_KEY
+
+------------>>>>>>>>> ADMINISTER KEY MANAGEMENT SET KEYSTORE OPEN FORCE KEYSTORE IDENTIFIED BY EXTERNAL STORE;
+
+Setting the TDE Master Encryption Key in the Software Keystore
+===============================================================
+
+------------SQL> ADMINISTER KEY MANAGEMENT SET KEY FORCE KEYSTORE IDENTIFIED BY "P#@ssWR0d_2022" WITH BACKUP;
+
+-------------keystore altered.
+
+SQL> SET LINESIZE 100
+SQL> SELECT con_id, key_id FROM v$encryption_keys;
+
+    CON_ID KEY_ID
+---------- ------------------------------------------------------------------------------
+         0 Acd8ichXMU8Ivye8AC+sOn0AAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+SQL>
+
+select con_id, wallet_type, status from v$encryption_wallet;
+
+    CON_ID WALLET_TYPE          STATUS
+---------- -------------------- ------------------------------
+         0 AUTOLOGIN            OPEN
+
+==================transfer file to the other nodes==========================
+[oracle@test-oracle-rack-v02 ~]$ mkdir -p /u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET/tde
+[oracle@test-oracle-rack-v02 ~]$ cd /u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET/tde
+[oracle@test-oracle-rack-v02 tde]$ pwd
+/u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET/tde
+[oracle@test-oracle-rack-v02 tde]$ ls -ltr
+total 0
+[oracle@test-oracle-rack-v02 tde]$ exit
+logout
+Connection to test-oracle-rack-v02 closed.
+[oracle@test-oracle-rack-v01 tde]$ ls -ltr
+total 32
+-rw------- 1 oracle asmadmin 2553 Sep 19 10:48 ewallet_2024091907482000.p12
+-rw------- 1 oracle asmadmin 3993 Sep 19 10:52 ewallet_2024091907523010.p12
+-rw------- 1 oracle asmadmin 5465 Sep 19 10:52 ewallet_2024091907525182.p12
+-rw------- 1 oracle asmadmin 6953 Sep 19 10:52 ewallet.p12
+-rw------- 1 oracle asmadmin 6998 Sep 19 10:53 cwallet.sso
+
+
+
+[oracle@test-oracle-rack-v01 tde]$ scp * test-oracle-rack-v02:/u01/app/oracle/product/19.3.0.0/dbhome_1/admin/salma/WALLET
+cwallet.sso                                                                    100% 6998     4.9MB/s   00:00
+ewallet_2024091907482000.p12                                                   100% 2553     2.3MB/s   00:00
+ewallet_2024091907523010.p12                                                   100% 3993     3.3MB/s   00:00
+ewallet_2024091907525182.p12                                                   100% 5465     4.8MB/s   00:00
+ewallet.p12                                                                    100% 6953     6.6MB/s   00:00
+[oracle@test-oracle-rack-v01 tde]$ !sq
+sqlplus / as sysdba
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Thu Sep 19 11:11:45 2024
+Version 19.24.0.0.0
+
+Copyright (c) 1982, 2024, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.24.0.0.0
+
+SQL> select con_id, wallet_type, status from gv$encryption_wallet;
+
+    CON_ID WALLET_TYPE          STATUS
+---------- -------------------- ------------------------------
+         1 AUTOLOGIN            OPEN
+         2 AUTOLOGIN            OPEN
+         3 AUTOLOGIN            OPEN
+         4 AUTOLOGIN            OPEN
+         1 AUTOLOGIN            OPEN
+         2 AUTOLOGIN            OPEN
+         3 AUTOLOGIN            OPEN
+         4 AUTOLOGIN            OPEN
+
+8 rows selected.
+========================================================================================================================================
+
+
+
+
+
+Encrypt Your Data
+==================
+Tablespace >> tbs1
+============================
+
+
+
+
+SQL> ALTER TABLESPACE tbs1 ENCRYPTION ONLINE USING 'AES256' ENCRYPT ;
+
+Tablespace altered.
+
+
+
+
+
+SQL> SELECT t.name "TSName", e.encryptionalg "Algorithm" FROM v$tablespace t, v$encrypted_tablespaces e WHERE t.ts# = e.ts#;
+
+TSName                         Algorit
+------------------------------ -------
+tbs1                   AES256
+
+SQL>
+
+-----------------------------------------------------------------------------------------------------
+
+
+===========================
+ALTER TABLESPACE tbs2 OFFLINE;
+ALTER TABLESPACE tbs2 ENCRYPTION OFFLINE USING 'AES256' ENCRYPT;
+ALTER TABLESPACE tbs2 ONLINE;
+
+
+
+ALTER TABLESPACE tbs1 ENCRYPTION OFFLINE USING 'AES256' ENCRYPT;
+
+
+SQL>  select FILE_NAME from dba_data_files where TABLESPACE_NAME='USERS';
+ select FILE_NAME from dba_data_files where TABLESPACE_NAME='T24DATA';---------------3.00 : 9.00 
+ 
+ 
+ ALTER TABLESPACE tbs2 ENCRYPTION ONLINE  DECRYPT ;
+ 
+ finish
+ 
+ 
+ ALTER TABLESPACE tbs2 OFFLINE;
+ALTER TABLESPACE tbs2 ENCRYPTION OFFLINE USING 'AES256' ENCRYPT;
+ALTER TABLESPACE tbs2 ONLINE;
+
+
+ALTER TABLESPACE tbs2 ENCRYPTION OFFLINE DECRYPT ;
+
+
+
+
+
+
+
+
+
+DRAFT : create tablespace
+---------------------------------
+
+
+
+CREATE TABLESPACE tbs1 
+   DATAFILE 'tbs1_data.dbf' 
+   SIZE 1m;
+   
+   
+   
+   
+   
+   create tablespace tbs2
+  datafile  
+  size 32m 
+  autoextend on 
+  next 32m maxsize 2048m;
+  
+  
+  
+  to show table space :
+  --------------------------------
+  desc dba_tablespaces ;
+  
+  select TABLESPACE_NAME from dba_tablespaces ;

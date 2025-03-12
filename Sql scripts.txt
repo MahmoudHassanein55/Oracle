@@ -1,0 +1,151 @@
+// Create User :
+----------------
+
+CREATE USER <User_Name>
+  IDENTIFIED BY <Password>
+  DEFAULT TABLESPACE USERS
+  TEMPORARY TABLESPACE TEMP
+  PROFILE DEFAULT
+  ACCOUNT UNLOCK;
+// 2 System Privileges for <User_Name> 
+  GRANT CREATE SESSION TO <User_Name>;
+GRANT SELECT ANY TABLE TO <User_Name>;
+
+==================================================================================================================================
+// LOCK User :
+--------------
+
+ALTER USER <User_Name> ACCOUNT LOCK;
+
+==================================================================================================================================
+// UNLOCK User :
+----------------
+
+ALTER USER <User_Name> ACCOUNT UNLOCK;
+
+==================================================================================================================================
+// list extend users :
+======================
+
+select username, account_status, expiry_date from dba_users where username not in ('SYS', 'SYSTEM');
+
+=============================================================<<<<<<>>>>>>================================================
+// extend the expration date : 
+===============================
+
+SELECT 'ALTER USER '|| name ||' IDENTIFIED BY VALUES '''|| spare4 ||';'|| password ||''';' FROM sys.user$ WHERE name='CONTROL_RO';
+
+==================================================================================================================================
+// Drop User
+-------------
+
+drop user <User_Name> ;
+
+==================================================================================================================================
+
+// increase recovery file :
+----------------------------
+ 
+alter system set db_recovery_file_dest_size=700G;
+
+==================================================================================================================================
+// start databace from sql :
+----------------------------
+
+// cat /etc/oratab
+// to get containers name
+
+SQL> startup			>> mount 
+						>> nomount
+						
+						
+and start the Listener.
+		lsnrctl status
+		lsnrctl start
+		
+		
+------->$ORACLE_HOME/bin/lsnrctl start
+		
+		
+------->Make sure that the database listener is running by using the following command
+		
+------->$ORACLE_HOME/bin/lsnrctl services
+==================================================================================================================================
+// shut databace from sql :
+---------------------------
+SQL> startup 
+SQL> shut immediate
+		
+		>> abort
+		
+		
+// out of SQL--------cluster component status-----
+---->>		 crsctl stat res -t
+---->>		 crsctl stop crs
+---->>		 crsctl start crs	
+---->>	
+---->>		-------------STOP DATABASE--------
+---->>		srvctl stop database -d PRODB //-o normal
+---->>		srvctl stop database -d PRODB -o immediate
+---->>		srvctl stop database -d PRODB //-o transactional
+---->>		srvctl stop database -d PRODB //-o abort
+---->>	
+---->>		------------START DATABASE--------
+---->>		srvctl start database -d PRODB -o nomount
+---->>		srvctl start database -d PRODB -o mount
+---->>		srvctl start database -d PRODB -o open
+---->>	
+---->>		------------ STOP AN INSTANCE ------------
+---->>		###srvctl stop instance -d db_unique_name [-i “instance_name_list”]} [-o stop_options] [-f]
+---->>	
+---->>		srvctl status instance -d abedbtst -i abedbtst2
+---->>	
+---->>	
+---->>		----------- START AN INSTANCE-------------
+---->>		###srvctl start instance -d db_unique_name [-i “instance_name_list”} [-o start_options]
+---->>		srvctl start instance -d PRODB -i PRODB1
+==================================================================================================================================
+// to display all backup list
+-----------------------------------
+
+	
+set linesize 900
+col STATUS format a40
+col hrs format 999.99
+select
+SESSION_KEY, INPUT_TYPE, STATUS,
+to_char(START_TIME,'mm/dd/yy hh24:mi') start_time,
+to_char(END_TIME,'mm/dd/yy hh24:mi')   end_time,
+elapsed_seconds/3600                   hrs
+from V$RMAN_BACKUP_JOB_DETAILS
+order by session_key;
+==================================================================================================================================
+//	to know Host and port
+
+//	in sql
+show parameter local
+
+
+==================================================================================================================================
+//	 to know the size 
+
+du -sg	<-------POWER9
+
+
+du -sh  <-----L
+
+==================================================================================================================================
+// show the SESSION
+
+select sid, serial#, status, username, from v$session where sid='<SID>';
+
+// kill the SESSION
+
+alter system kill session '<sid.serial#>' immediate
+
+
+
+
+
+
+

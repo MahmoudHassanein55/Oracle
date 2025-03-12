@@ -1,0 +1,68 @@
+
+// commands to control cluster
+============================================================================
+// by any user (root / grid / oracle)
+
+----> this command to know the "status" of all nodes
+
+	crsctl stat res -t	
+============================================================================
+----> this commands to -> "stop" / "start" 
+// by user (root) only
+
+// go to the path of grid home --> /bin
+	$GRID_HOME/bin/
+---------------------------------------
+----> this command to stop the current node
+
+	./crsctl stop crs
+---------------------------------------
+----> this command to start the current node
+
+	./crsctl start crs
+============================================================================
+----> this command to stop the cluster all nodes
+	
+	./crsctl stop cluster -all
+---------------------------------------
+----> this command to start the cluster all nodes
+	
+	./crsctl start cluster -all
+============================================================================
+
+
+// commands to control cluster serves
+============================================================================
+// by user (grid)
+
+----> this command to stop the instance
+---------------------------------------
+					  <instance_name> <database_name>
+	srvctl stop instance -i oracle252 -d oracle25
+
+---------------------------------------
+----> this command to start the instance
+---------------------------------------
+					   <instance_name> <database_name>
+	srvctl start instance -i oracle252 -d oracle25
+	
+---------------------------------------
+----> this command to stop the database
+							 <database_name>
+		srvctl stop database -d PRODB //-o normal
+							 <database_name>
+		srvctl stop database -d PRODB -o immediate	(use this)
+							 <database_name>
+		srvctl stop database -d PRODB //-o transactional
+							 <database_name>
+		srvctl stop database -d PRODB //-o abort	(never use this)
+		
+---------------------------------------
+----> this command to stop the database
+							  <database_name>
+		srvctl start database -d PRODB -o nomount
+							  <database_name>
+		srvctl start database -d PRODB -o mount
+							  <database_name>
+		srvctl start database -d PRODB -o open
+============================================================================

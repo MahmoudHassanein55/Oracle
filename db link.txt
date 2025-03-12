@@ -1,0 +1,43 @@
+بكتب حاجات ال destenation
+وبعد كده ارميها علي ال source 
+
+
+CREATE PUBLIC DATABASE LINK CORE
+CONNECT TO arabank IDENTIFIED BY icl 
+USING '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.43.127.20 )(PORT=1539))(CONNECT_DATA=(SERVICE_NAME=ORACL2K)))';
+
+
+
+CREATE PUBLIC DATABASE LINK RO_DWH  
+CONNECT TO mohi_ro IDENTIFIED BY mohi_ro
+USING '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST= hq-duatdb-scan)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=DWH_UAT)))';
+
+UATTRSRY   ---  ABEUAT/ABEUAT
+
+FUATPDB --  custom/custom
+
+
+
+(ADDRESS=(PROTOCOl=TCP)(HOST=10.31.160.11)
+لو اليوزر الي هعمل عليه ال db link مش موجود ==>  CONNECT TO arabank IDENTIFIED BY icl  
+
+create user  mohi_ro IDENTIFIED BY mohi_ro;
+grant connect  , select any table to mohi_ro;
+
+ صلاحيات لجد اولجد
+Grant select on CUSTOM.C_PARTY_DIMENSION  to ETL_RO;
+Grant select on CUSTOM.C_ACCOUNT_DIMENSION      to ETL_RO;
+Grant select on CUSTOM.C_PARTY_ACCOUNT_BRIDGE   to ETL_RO;
+Grant select on CUSTOM.C_CASH_FLOW_FACT         to ETL_RO;
+Grant select on CUSTOM.C_ASSOCIATIVE_DIMENSION  to ETL_RO;
+Grant select on CUSTOM.C_SAS_STATUS             to ETL_RO;
+Grant update on CUSTOM.C_SAS_STATUS to ETL_RO;
+
+
+drop public database link RO_DWH   ;
+drop public database link EG_FUATPDB ;
+drop public database link UATTRSRY   ;
+drop public database link FUATPDB    ;
+
+
+Kindly note that database link has been created 

@@ -1,0 +1,191 @@
+=====AS Grid
+		// change path ----------
+export GI_HOME=/u01/app/21.0.0.0/grid/
+export PATCH_LOCATION=/u01/patch_23.1.21/
+export BP_NUMBER=36990664 
+export OCW_PATCH=36999645
+export ACFS_PATCH=37157122
+export WLM_PATCH=36718064
+export DB_PATCH=36991631
+export TOMCAT_PATCH=36949613
+export RHP_PATCH=36772575
+
+. /opatch util listorderedinactivepatches
+. /opatch util deleteinactivepatches
+
+==============Config Prechecks===============
+For Grid home, as grid user:
+
+/u01/app/21.0.0.0/grid/OPatch/opatch lspatches
+
+export GI_HOME=/u01/app/21.0.0.0/grid/
+
+$GI_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH     -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH    -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$ACFS_PATCH   -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$TOMCAT_PATCH -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$WLM_PATCH    -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$RHP_PATCH    -oh $GI_HOME
+
+$GI_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH     -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH    -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$ACFS_PATCH   -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$TOMCAT_PATCH -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$WLM_PATCH    -oh $GI_HOME
+$GI_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$RHP_PATCH    -oh $GI_HOME
+
+
+
+=====AS Oracle 
+
+		// change path ----------
+export PATCH_LOCATION=/u01/patch_23.1.21/36866740
+export BP_NUMBER=36916690 
+export OCW_PATCH=36917416
+export DB_PATCH=36912597
+
+
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0.0/dbhome_1
+
+/u01/app/oracle/product/19.0.0.0/dbhome_1/OPatch/opatch lspatches
+
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH -oh $ORACLE_HOME
+
+$ORACLE_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH  -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH -oh $ORACLE_HOME
+
+
+=======================Patching Execution=============================
+
+
+patching plan :
+=================
+
+as root :
+
+chmod  755 $ORACLE_HOME/QOpatch/qopiprep.bat
+		// change path ----------
+export GI_HOME=/u01/app/21.0.0.0/grid/				---> grid home path
+chmod  755 $GI_HOME/QOpatch/qopiprep.bat
+chmod  777 /u01/app/21.0.0.0/grid/bin/extjob		---> grid home path
+$GI_HOME/crs/install/rootcrs.sh -prepatch		-----------> change user and stop cluster & database
+
+su - grid
+
+		// change path ----------
+export GI_HOME=/u01/app/21.0.0.0/grid
+export PATCH_LOCATION=/u01/patch_23.1.21/
+export BP_NUMBER=36696109 
+export OCW_PATCH=36713421
+export ACFS_PATCH=36772571
+export WLM_PATCH=36718064
+export DB_PATCH=36696242
+export TOMCAT_PATCH=36714615
+export RHP_PATCH=36772575
+
+
+$GI_HOME/OPatch/opatch util listorderedinactivepatches
+$GI_HOME/OPatch/opatch util deleteinactivepatches -silent
+
+
+nohup $GI_HOME/OPatch/opatch apply -oh $GI_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH &
+nohup $GI_HOME/OPatch/opatch apply -oh $GI_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$ACFS_PATCH &
+nohup $GI_HOME/OPatch/opatch apply -oh $GI_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH &
+nohup $GI_HOME/OPatch/opatch apply -oh $GI_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$TOMCAT_PATCH &
+nohup $GI_HOME/OPatch/opatch apply -oh $GI_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$WLM_PATCH &
+nohup $GI_HOME/OPatch/opatch apply -oh $GI_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$RHP_PATCH &
+
+
+$GI_HOME/OPatch/opatch lspatches
+-----------------------------------------------------------------------------------------------
+-check permissions 
+su - oracle 
+ls -al  /u01/app/oraInventory/ContentsXML/oui-patch.xml
+
+as root:
+
+chmod 664  /u01/app/oraInventory/ContentsXML/oui-patch.xml
+-----------------------------------------------------------------------------------------------
+
+=====AS Oracle
+
+As the database home owner execute:
+		// change path ----------
+export PATCH_LOCATION=/u01/patch_23.1.21/36866740
+export BP_NUMBER=36916690 
+export OCW_PATCH=36917416
+export DB_PATCH=36912597
+
+
+/u01/app/oracle/product/19.0.0.0/dbhome_1/OPatch/opatch lspatches
+
+Patches to be Rolledback:
+=========================
+
+$ORACLE_HOME/OPatch/opatch rollback -id 34672698
+$ORACLE_HOME/OPatch/opatch rollback -id 35789976
+$ORACLE_HOME/OPatch/opatch rollback -id 36682332
+
+$ORACLE_HOME/OPatch/opatch util listorderedinactivepatches
+$ORACLE_HOME/OPatch/opatch util deleteinactivepatches -silent
+
+$PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH/custom/scripts/prepatch.sh -dbhome $ORACLE_HOME    -----------> change user and stop cluster & database
+
+
+nohup $ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH &
+nohup $ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent $PATCH_LOCATION/$BP_NUMBER/$DB_PATCH &
+
+
+Replacement Patches for rolledback patches:
+===========================================
+
+
+cd /u01/patch_23.1.21
+
+		// change path ----------
+export PATCH_LOCATION=/u01/patch_23.1.21/36866740
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0.0/dbhome_1
+
+nohup $ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent $PATCH_LOCATION/37056207 &
+nohup $ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent $PATCH_LOCATION/34672698 &
+
+OJVM:
+=====
+
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -phBaseDir $PATCH_LOCATION/36878697   -oh $ORACLE_HOME
+$ORACLE_HOME/OPatch/opatch prereq CheckSystemSpace -phBaseDir $PATCH_LOCATION/36878697   -oh $ORACLE_HOME
+
+	// before running the apply you shoud export perl path (if you don't know the command search from the sulution by searching the error from running the next command)
+		
+		export PATH=$ORACLE_HOME/perl/bin:$PATH
+		export PERL5LIB=$ORACLE_HOME/perl/lib
+
+nohup $ORACLE_HOME/OPatch/opatch apply -oh $ORACLE_HOME -local -silent $PATCH_LOCATION/36878697 &
+
+=====
+
+$PATCH_LOCATION/$BP_NUMBER/$OCW_PATCH/custom/scripts/postpatch.sh -dbhome $ORACLE_HOME	-----------> change user and start cluster & database
+
+
+============GRID POST patching scripts
+
+As the root user execute:
+
+export GI_HOME=/u01/app/21.0.0.0/grid
+
+$GI_HOME/rdbms/install/rootadd_rdbms.sh
+$GI_HOME/crs/install/rootcrs.sh -postpatch  -----------> change user and start cluster & database
+
+
+
+========================
+
+
+if process running from DB Home (sqlplus) caused failure to the patching:
+
+/sbin/fuser /u01/app/oracle/product/19.0.0.0/dbhome_1/lib/libsqlplus.so
+
+ps -ef | grep sid
+
+kill process and re_run patch

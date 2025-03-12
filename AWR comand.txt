@@ -1,0 +1,15 @@
+// on sql
+// container
+
+
+
+@$ORACLE_HOME/rdbms/admin/awrrpt.sql
+
+
+// on sql 
+// on pluggabal
+
+
+alter session set container=		;
+
+@$ORACLE_HOME/rdbms/admin/awrrpt.sql

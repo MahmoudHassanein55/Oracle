@@ -1,0 +1,134 @@
+list open file:
+=================
+
+lsof 
+
+if not found install it. (yum lsof)
+
+================================== when patch take long time =================================================
+IN active Patches:
+=====================
+OPatch version should be 37 or later 
+
+$ORACLE_HOME/OPatch/opatch util listorderedinactivepatches
+$ORACLE_HOME/OPatch/opatch util deleteinactivepatches -silent
+
+
+---------------------------------------------------------------------------------------------------------
+================================= When a file is hold by another part during the patch =====================
+list open file:
+=================
+
+lsof  path/file 
+kill -9 
+---------------------------------------------------------------------------------------------------------
+================================= From OS sid ================================================================
+error : Root.sh or Postpatch Failed To Load ACFSDriver 'ACFS-9428: Failed to load ADVM/ACFS drivers' (Doc ID 2887279.1)
+2024-11-27 15:28:22: The 'ROOTCRS_POSTPATCH_ACFSINST' is either in START/FAILED state
+2024-11-27 15:28:22: Installing ACFS drivers ...
+2024-11-27 15:28:22: Installing ACFS drivers to system root
+2024-11-27 15:28:22: Executing the step [acfs_ConfigCurrentNode_step_2] to configure ACFS on the first node
+2024-11-27 15:28:22: /u01/app/19.0.0.0/grid/bin/acfsdriverstate not found
+2024-11-27 15:28:22: Skipping ACFS install: It is not supported on this OS/patch level
+2024-11-27 15:28:22: ACFS drivers installation completed
+2024-11-27 15:28:22: Invoking "/u01/app/19.0.0.0/grid/bin/cluutil -ckpt -oraclebase /u01/app/grid -writeckpt -name ROOTCRS_POSTPATCH_ACFSINST -state SUCCESS"
+2024-11-27 15:28:22: trace file=/u01/app/grid/crsdata/hq-blkdbuat-v01/crsconfig/cluutil1.log
+2024-11-27 15:28:22: Running as user grid: /u01/app/19.0.0.0/grid/bin/cluutil -ckpt -oraclebase /u01/app/grid -writeckpt -name ROOTCRS_POSTPATCH_ACFSINST -state SUCCESS
+2024-11-27 15:28:23: Removing file /tmp/aXotObfn39
+2024-11-27 15:28:23: Successfully removed file: /tmp/aXotObfn39
+
+
+Security boot:
+===============
+cd /u01/app/19.0.0.0/grid/bin
+mv or rename files    acfsload 
+					  acfsroot 
+					  acfsdriverstate
+					 
+					 
+
+to apply the patch successfully and return back when it is done, OR  talk with the OS team to stop the security boot.	
+
+---------------------------------------------------------------------------------------------------------
+================================= Error ======================================================================
+Patching component oracle.javavm.client, 19.0.0.0.0...
+Make failed to invoke "/usr/bin/make -f ins_rdbms.mk javavm_refresh ORACLE_HOME=/u01/app/oracle/product/19.0.0/dbhome_1 OPATCH_SESSION=napply"....'make: perl: Command not found
+make: *** [ins_rdbms.mk:573: javavm_refresh] Error 127
+'
+solution 
+=========
+as oracle user
+
+export PATH=$ORACLE_HOME/perl/bin:$PATH
+export PERL5LIB=$ORACLE_HOME/perl/lib
+
+---------------------------------------------------------------------------------------------------------
+================================= Error ======================================================================
+
+OPatch Apply/Rollback Errors: 'Prerequisite check "CheckActiveFilesAndExecutables" failed' OPatch fails with error code = 41 or 74 (Doc ID 747049.1)  ) if you faced ( CheckActiveFilesAndExecutables ) errorPatching component oracle.javavm.client, 19.0.0.0.0...
+
+solution 
+=========
+Kill any session. 
+
+---------------------------------------------------------------------------------------------------------
+================================= Error ======================================================================
+ORA-1691: unable to extend lobsegment SYS.SYS_LOB0000007424C00005$$ by 1024 in tablespace SYSAUX [DWH_UAT] (ospid 1459976)
+
+solution 
+=========
+
+increase the size of table space (before datapatch)
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------
+================================= Error =================================================================
+Following active files/executables/libs are used by ORACLE_HOME :/u01/app/oracle/product/19.3.0/db_1
+/u01/app/oracle/product/19.3.0/db_1/lib/libclntsh.so.19.1
+/u01/app/oracle/product/19.3.0/db_1/lib/libsqlplus.so
+
+
+UtilSession failed: Prerequisite check "CheckActiveFilesAndExecutables" failed.
+Log file location: /u01/app/oracle/product/19.3.0/db_1/cfgtoollogs/opatch/opatch2024-11-20_09-49-19AM_1.log
+
+OPatch failed with error code 73
+
+solution 
+=========
+ps -ef | grep oracle
+ kill -9 
+ to kill any session is active 
+---------------------------------------------------------------------------------------------------------
+
+
+
+crcheck.bin" does not exists or is not readable
+'oracle.has.crs, 19.0.0.0.0': Cannot copy file from 'ocrcheck.bin' to '/u01/app/19.0.0.0/grid/bin/ocrcheck.bin'
+Copy Action: Source File "/u01/patches/36866740/36916690/36917416/files/bin/ocrconfig.bin" does not exists or is not readable
+'oracle.has.crs, 19.0.0.0.0': Cannot copy file from 'ocrconfig.bin' to '/u01                                                                                  /app/19.0.0/grid/bin/ocrconfig.bin'
+
+
+as root 
+
+chmod -R 775 /u01/patches/36866740
+
+
+--------------------------------------warning-----------------------------------------------------------
+
+Verifying environment and performing prerequisite checks...
+
+The following patch(es) are duplicate patches with patches installed in the Oracle Home.
+ [ 36758186]
+You have already installed same patch(es) with same UPI(s) or same version(s).
+These patch(es) will be skipped.
+
+
+OPatch Session completed with warnings.
+Log file location: /u01/app/19.0.0.0/grid/cfgtoollogs/opatch/opatch2024-11-21_14-33-13PM_1.log
+
+OPatch completed with warnings.
+
+ignore it  to be applied each 6 months

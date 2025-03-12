@@ -1,0 +1,60 @@
+vi /home/orcle/rman_full_backup_1.sh
+
+#!/bin/sh
+export ORACLE_HOME=/u01/app/oracle/product/19.3.0.0/dbhome_1
+export PATH=$ORACLE_HOME/bin:$PATH
+export ORACLE_SID=fawrytestuat
+mkdir /shared/backup/$(date +%d_%h_%Y)
+mkdir /shared/backup/$(date +%d_%h_%Y)/db
+mkdir /shared/backup/$(date +%d_%h_%Y)/controlfile
+mkdir /shared/backup/$(date +%d_%h_%Y)/arch
+mkdir /shared/backup/$(date +%d_%h_%Y)/log
+mkdir /shared/backup/$(date +%d_%h_%Y)/pfile
+
+rman target / nocatalog   log=/shared/backup/$(date +%d_%h_%Y)/log/RMAN_$(date +%d_%h_%Y).log <<EOF
+crosscheck backup;
+delete noprompt obsolete;
+crosscheck archivelog all;
+delete noprompt ARCHIVELOG ALL COMPLETED BEFORE 'SYSDATE-2';
+run
+{
+ALLOCATE CHANNEL d1 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d2 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d3 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d4 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d5 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d6 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d7 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d8 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d9 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d10 DEVICE TYPE DISK;
+BACKUP as compressed backupset database FORMAT '/shared/backup/$(date +%d_%h_%Y)/db/%d_%T_%t_%s_%p' section size 8G;
+ALLOCATE CHANNEL d11 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d12 DEVICE TYPE DISK;
+ALLOCATE CHANNEL d13 DEVICE TYPE DISK;
+BACKUP as compressed backupset archivelog all FORMAT '/shared/backup/$(date +%d_%h_%Y)/arch/%d_%T_%t_%s_%p' section size 1G;
+backup as copy current controlfile format '/shared/backup/$(date +%d_%h_%Y)/controlfile/control.ctl';
+sql "create pfile=''/shared/backup/$(date +%d_%h_%Y)/pfile/init_$(date +%d_%h_%Y).ora''from spfile";
+RELEASE CHANNEL d1;
+RELEASE CHANNEL d2;
+RELEASE CHANNEL d3;
+RELEASE CHANNEL d4;
+RELEASE CHANNEL d5;
+RELEASE CHANNEL d6;
+RELEASE CHANNEL d7;
+RELEASE CHANNEL d8;
+RELEASE CHANNEL d9;
+RELEASE CHANNEL d10;
+RELEASE CHANNEL d11;
+RELEASE CHANNEL d12;
+RELEASE CHANNEL d13;
+}
+EOF
+
+
+find /shared/backup -mtime +2 -exec rm -rv {} \;
+
+
+chmod 777 /home/oracle/rman_full_backup_1.sh
+
+nohup /home/oracle/rman_full_backup_1.sh &

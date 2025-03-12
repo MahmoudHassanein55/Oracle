@@ -1,0 +1,42 @@
+// steps for creating crontab to delete archivelog
+===============================================
+// on moba
+
+>>  crontab -l <-- L for list
+<< no crontab for oracle
+
+// creating script 
+==================
+
+>> vi /home/oracle/maint_scripts/del_archivelog_<tstctx>.sh
+
+==========================================================
+// inside file "del_archivelog_DWHPRD"
+-----------------------------------------
+
+export ORACLE_HOME=</u01/app/oracle/product/19.0.3/dbhome_1>
+export PATH=$ORACLE_HOME/bin:$PATH
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_SID=<tstctx>
+rman target /  << EOF
+DELETE NOPROMPT ARCHIVELOG ALL COMPLETED BEFORE 'sysdate-2'; 
+exit
+EOF
+
+// save and exit file
+=============================================================
+// back on moba
+
+chmod 775 /home/oracle/maint_scripts/del_archivelog_<tstctx>.sh
+
+>> cat /home/oracle/maint_scripts/del_archivelog_<tstctx>.sh
+
+creating crontab 
+----------------
+crontab -e	<-- 'e' for edit
+
+//-------------------  to run crontab file at 12 pm ------------//--------------to create log file for crontab ---------------------
+
+00 00 * * * /home/oracle/maint_scripts/del_archivelog_<tstctx>.sh > /home/oracle/maint_scripts/del_archivelog_<tstctx>.log
+
+crontab -l

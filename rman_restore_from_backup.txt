@@ -1,0 +1,267 @@
+****** from production ************
+
+SQL> select sum(bytes)/1024/1024/1024 from dba_data_files ;
+
+SUM(BYTES)/1024/1024/1024
+-------------------------
+               2362.25464
+
+-----------------------------------------------------
+
+we need 2500GB free space on the target area
+
+
+======================== on target area ================================================
+
+create directory for audit_file_dest:
+
+ mkdir /u01/app/oracle/admin/fawrytest/adump
+ 
+create directory for TDE files:
+
+mkdir -p /u01/app/oracle/product/19.3.0.0/dbhome_1/admin/FAWRYTEST/WALLET/tde
+
+vi /backup/23_Jan_2025/pfile/init_23_Jan_2025.ora
+
+*.__data_transfer_cache_size=0
+fawrytest.__data_transfer_cache_size=0
+*.__db_cache_size=3632M
+fawrytest.__db_cache_size=3808428032
+*.__inmemory_ext_roarea=0
+fawrytest.__inmemory_ext_roarea=0
+*.__inmemory_ext_rwarea=0
+fawrytest.__inmemory_ext_rwarea=0
+*.__java_pool_size=0
+fawrytest.__java_pool_size=0
+*.__large_pool_size=16M
+*._always_anti_join='CHOOSE'
+*._always_semi_join='CHOOSE'
+*._b_tree_bitmap_plans=TRUE
+*._bloom_serial_filter='ON'
+*._complex_view_merging=TRUE
+*._compression_compatibility='19.0.0'
+*._diag_adr_trace_dest='/u01/app/oracle'
+*._ds_xt_split_count=1
+*._eliminate_common_subexpr=TRUE
+*._fast_full_scan_enabled=TRUE
+*._generalized_pruning_enabled=TRUE
+*._gs_anti_semi_join_allowed=TRUE
+*._hang_resolution_scope='INSTANCE'# _hang_resolution_scope updated by kjznpahps
+*._improved_outerjoin_card=TRUE
+*._improved_row_length_enabled=TRUE
+*._index_join_enabled=TRUE
+*._ipddb_enable=TRUE
+*._key_vector_create_pushdown_threshold=20000
+*._ksb_restart_policy_times='0','60','120','240'# internal update to set default
+*._left_nested_loops_random=TRUE
+*._mv_access_compute_fresh_data='ON'
+*._new_initial_join_orders=TRUE
+*._new_sort_cost_estimate=TRUE
+*._nlj_batching_enabled=1
+*._optim_enhance_nnull_detection=TRUE
+*._optim_peek_user_binds=TRUE
+*._optimizer_ads_use_partial_results=TRUE
+*._optimizer_better_inlist_costing='ALL'
+*._optimizer_cbqt_or_expansion='ON'
+*._optimizer_cluster_by_rowid_control=129
+*._optimizer_control_shard_qry_processing=65528
+*._optimizer_cost_based_transformation='LINEAR'
+*._optimizer_cost_model='CHOOSE'
+*._optimizer_extended_cursor_sharing='UDO'
+*._optimizer_extended_cursor_sharing_rel='SIMPLE'
+*._optimizer_extended_stats_usage_control=192
+*._optimizer_join_order_control=3
+*._optimizer_max_permutations=2000
+*._optimizer_mode_force=TRUE
+*._optimizer_native_full_outer_join='FORCE'
+*._optimizer_or_expansion='DEPTH'
+*._optimizer_proc_rate_level='BASIC'
+*._optimizer_system_stats_usage=TRUE
+*._optimizer_try_st_before_jppd=TRUE
+*._optimizer_use_cbqt_star_transformation=TRUE
+*._or_expand_nvl_predicate=TRUE
+*._ordered_nested_loop=TRUE
+*._parallel_broadcast_enabled=TRUE
+*._pivot_implementation_method='CHOOSE'
+*._pred_move_around=TRUE
+*._push_join_predicate=TRUE
+*._push_join_union_view=TRUE
+*._push_join_union_view2=TRUE
+*._px_dist_agg_partial_rollup_pushdown='ADAPTIVE'
+*._px_groupby_pushdown='FORCE'
+*._px_partial_rollup_pushdown='ADAPTIVE'
+*._px_shared_hash_join=FALSE
+*._px_wif_dfo_declumping='CHOOSE'
+*._sql_model_unfold_forloops='RUN_TIME'
+*._subquery_pruning_mv_enabled=FALSE
+*._table_scan_cost_plus_one=TRUE
+*._union_rewrite_for_gs='YES_GSET_MVS'
+*._unnest_subquery=TRUE
+*._use_column_stats_for_function=TRUE
+*._xt_sampling_scan_granules='ON'
+*.audit_file_dest='/u01/app/oracle/admin/fawrytest/adump'  
+*.audit_trail='DB'
+*.compatible='19.0.0'
+*.control_files='+DATA'
+*.core_dump_dest='/u01/app/oracle'
+*.db_block_size=8192
+*.db_create_file_dest='+DATA'
+*.db_name='fawrytes'
+*.db_unique_name='fawrytest'
+*.diagnostic_dest='/u01/app/oracle'
+*.dispatchers='(PROTOCOL=TCP) (SERVICE=fawrytestXDB)'
+*.enable_pluggable_database=TRUE
+*.listener_networks=''
+*.local_listener='(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=10.43.224.15)(PORT=1521)))'
+*.log_buffer=7080K# log buffer update
+*.nls_language='AMERICAN'
+*.nls_territory='AMERICA'
+*.open_cursors=300
+*.optimizer_mode='ALL_ROWS'
+*.pga_aggregate_target=1573M
+*.plsql_warnings='DISABLE:ALL'# PL/SQL warnings at init.ora
+*.processes=320
+*.query_rewrite_enabled='TRUE'
+*.remote_listener='serve-scan:1521'
+*.remote_login_passwordfile='EXCLUSIVE'
+*.result_cache_max_size=24192K
+*.sga_target=4720M
+*.tde_configuration='KEYSTORE_CONFIGURATION=FILE'
+*.undo_tablespace='UNDOTBS1'
+*.wallet_root='/u01/app/oracle/product/19.3.0.0/dbhome_1/admin/FAWRYTEST/WALLET'
+
+
+************** from target area **************
+
+
+
+cd /arc1/AITEST3/
+rm -rf *
+
+ cd /oradb/oradata/AITEST3/
+ rm -rf *
+ 
+ 
+ ================ check from production ===========================
+ 
+ 
+select sum(bytes)/1024/1024/1024 from dba_data_files where FILE_ID in (1, 2, 3, 4, 5, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33) ;
+select sum(bytes)/1024/1024/1024 from dba_data_files where FILE_ID in (34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88)
+
+
+33 /arch1/aitest3/
+57 /oradb
+
+==================== from target area ==================================
+
+============== if TDE enabled,transfer the TDE file to target ======================
+
+scp /u01/app/oracle/product/19.3.0.0/dbhome_1/admin/FAWRY/WALLET/tde/* 10.43.224.11:/u01/app/oracle/product/19.3.0.0/dbhome_1/admin/FAWRYTEST/WALLET/tde/
+
+echo $ORACLE_HOME
+/u01/app/oracle/product/19.3.0.0/dbhome_1
+[oracle@test-oracle-rack-v01 WALLET]$ . oraenv
+ORACLE_SID = [test1] ? fawrytest
+ORACLE_HOME = [/home/oracle] ? /u01/app/oracle/product/19.3.0.0/dbhome_1
+The Oracle base remains unchanged with value /u01/app/oracle
+
+sqlplus / as sysdba
+
+SQL> startup nomount pfile='/backup/23_Jan_2025/pfile/init_23_Jan_2025.ora';
+SQL> select * from v$encryption_wallet;
+
+WRL_TYPE
+--------------------
+WRL_PARAMETER
+--------------------------------------------------------------------------------
+STATUS                         WALLET_TYPE          WALLET_OR KEYSTORE FULLY_BAC
+------------------------------ -------------------- --------- -------- ---------
+    CON_ID
+----------
+FILE
+/u01/app/oracle/product/19.3.0.0/dbhome_1/admin/FAWRYTEST/WALLET/tde/
+OPEN                           AUTOLOGIN            SINGLE    NONE     NO
+         1
+
+SQL> create spfile from pfile='/backup/23_Jan_2025/pfile/init_23_Jan_2025.ora';
+
+shut immediate
+startup nomount
+----or-------
+startup nomount force
+
+=============================================================
+rman target /
+
+
+restore controlfile from '/backup/23_Jan_2025/controlfile/control.ctl';
+
+
+RMAN> alter database mount ;
+
+
+====================================================
+cd /home/oracle/
+rman target/
+
+catalog start with '/backup/23_Jan_2025';
+
+crosscheck backup;
+delete expired backup;
+list backup;
+
+vi /home/oracle/restore1.cmd
+
+
+RUN {
+ALLOCATE CHANNEL CH1 TYPE disk;
+ALLOCATE CHANNEL CH2 TYPE disk;
+ALLOCATE CHANNEL CH3 TYPE disk;
+ALLOCATE CHANNEL CH4 TYPE disk;
+ALLOCATE CHANNEL CH5 TYPE disk;
+ALLOCATE CHANNEL CH6 TYPE disk;
+ALLOCATE CHANNEL CH7 TYPE disk;
+ALLOCATE CHANNEL CH8 TYPE disk;
+ALLOCATE CHANNEL CH9 TYPE disk;
+ALLOCATE CHANNEL CH10 TYPE disk;
+SET NEWNAME FOR DATABASE TO '+DATA/FAWRYTEST/%U';
+restore database ;
+switch datafile all;
+switch tempfile all;
+recover database;
+}
+
+nohup rman target / cmdfile=/home/oracle/restore1.cmd log=/home/oracle/restore1.log &
+rman target/
+
+alter database open resetlogs;
+
+
+======================
+
+SQL> shut immediate
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+SQL>
+SQL> startup
+ORACLE instance started.
+
+Total System Global Area 4949275304 bytes
+Fixed Size                  9188008 bytes
+Variable Size             889192448 bytes
+Database Buffers         4043309056 bytes
+Redo Buffers                7585792 bytes
+Database mounted.
+Database opened.
+SQL> SQL> select status,con_id from v$encryption_wallet;
+
+select status,con_id from v$encryption_wallet;
+
+STATUS                             CON_ID
+------------------------------ ----------
+OPEN                                    1
+OPEN                                    2
+OPEN                                    4
+
+======================
