@@ -1,0 +1,98 @@
+------------------------------------------export table from FUBSprd----------------------------------------
+mkdir -p 	 /shared/datapump/finf_tables
+chmod -R 775 /shared/datapump/finf_tables
+
+
+cd /shared/datapump/finf_tables
+vi export.par
+
+dumpfile=
+FIFADM_TABLES_%U.dmp
+parallel=10
+logfile=EXPORT.LOGFILE
+directory=EXP_TABLES
+#compression=all
+#exclude=db_link,statistics
+#content=data_only
+#FILESIZE=500M
+tables=
+finfadm.URM_MENU_DESC_TBL       ,
+finfadm.URM_MENU_TBL            ,
+finfadm.URM_ROLE_MENU_TBL       ,
+finfadm.URM_MENU_DESC_TBL       ,
+finfadm.SSO_RESOURCE_ACCESS_TBL ,
+finfadm.URM_UPR_CORE_abe        ,
+finfadm.URM_RPT_CORE_abe        ,
+finfadm.URM_RCL_CORE_abe        ,
+finfadm.URM_RSC_CORE_abe        ,
+finfadm.URM_USER_ROLE_TBL       ,
+finfadm.USER_CREDS_TBL          ,
+finfadm.USER_PROFILE_TBL        ,
+finfadm.URM_ROLE_RESOURCE_TBL   ,
+finfadm.URM_ROLE_TBL            ,
+finfadm.URM_USER_ROLE_TBL       ,
+finfadm.SSO_ROLES_TBL           ,
+finfadm.UPR_Core_ABE
+
+//--------  on sql
+
+create or replace directory finf_tables as '/shared/datapump/finf_tables';
+grant read,write on directory finf_tables to public;
+
+//------- out of sql
+
+nohup expdp system/Ora2022_2022@FUBSPRD parfile=export.par &
+
+//-------	transfer to another device
+
+scp -rp finf_tables 10.31.160.12:/shared/datapump
+
+
+----------------------------------import table to EXAUAT--------------------------------------------------
+
+cd /shared/datapump/finf_tables
+
+vi import.par
+
+dumpfile=
+ FIFADM_TABLES_01.dmp,
+ FIFADM_TABLES_02.dmp,
+ FIFADM_TABLES_03.dmp,
+ FIFADM_TABLES_04.dmp,
+ FIFADM_TABLES_05.dmp
+parallel=90
+logfile=imp.LOGFILE
+directory=imp_dir
+#compression=all
+#exclude=db_link,statistics
+#content=data_only
+#FILESIZE=500M
+tables=
+finfadm.URM_MENU_DESC_TBL       ,
+finfadm.URM_MENU_TBL            ,
+finfadm.URM_ROLE_MENU_TBL       ,
+finfadm.URM_MENU_DESC_TBL       ,
+finfadm.SSO_RESOURCE_ACCESS_TBL ,
+finfadm.URM_UPR_CORE_abe        ,
+finfadm.URM_RPT_CORE_abe        ,
+finfadm.URM_RCL_CORE_abe        ,
+finfadm.URM_RSC_CORE_abe        ,
+finfadm.URM_USER_ROLE_TBL       ,
+finfadm.USER_CREDS_TBL          ,
+finfadm.USER_PROFILE_TBL        ,
+finfadm.URM_ROLE_RESOURCE_TBL   ,
+finfadm.URM_ROLE_TBL            ,
+finfadm.URM_USER_ROLE_TBL       ,
+finfadm.SSO_ROLES_TBL
+TABLE_EXISTS_ACTION=TRUNCATE
+
+//--------- on sql 
+alter session set container=TRN0408;
+
+create or replace directory imp_dir as '/shared/datapump/finf_tables';
+grant read , write on directory imp_dir to public;
+
+//--------- out of sql
+
+nohup impdp system/Ora2022@TRN0408 parfile=import.par &
+
