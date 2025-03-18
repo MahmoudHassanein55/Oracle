@@ -46,7 +46,9 @@ nohup expdp system/Ora2022_2022@FUBSPRD parfile=export.par &
 //-------	transfer to another device
 
 scp -rp finf_tables 10.31.160.12:/shared/datapump
+//short for this ->
 
+//scp -rp /shared/datapump/finf_tables IP_ADDRESS:/shared/datapump/
 
 ----------------------------------import table to EXAUAT--------------------------------------------------
 
